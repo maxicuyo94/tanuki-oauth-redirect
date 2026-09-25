@@ -1,0 +1,61 @@
+<!doctype html>
+<html lang="es">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex, nofollow" />
+    <meta name="referrer" content="no-referrer" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'; script-src 'unsafe-inline'; connect-src 'none'; form-action 'none'; base-uri 'none'" />
+    <title>Conectar Mercado Libre con Tanuki</title>
+    <style>
+      :root { color-scheme: light; font-family: system-ui, sans-serif; }
+      body { margin: 0; min-height: 100vh; display: grid; place-items: center; background: #fff3e2; color: #221d19; }
+      main { box-sizing: border-box; width: min(100% - 2rem, 36rem); padding: 2rem; border-radius: 1.5rem; background: #fff; box-shadow: 0 12px 38px #4b281b1a; }
+      h1 { margin: 0 0 1rem; font-size: 1.6rem; }
+      p { line-height: 1.5; }
+      textarea { box-sizing: border-box; width: 100%; min-height: 7rem; padding: .8rem; resize: vertical; border: 1px solid #aa9c91; border-radius: .6rem; font: .85rem ui-monospace, monospace; overflow-wrap: anywhere; }
+      button { margin-top: .8rem; padding: .75rem 1.2rem; border: 0; border-radius: .6rem; background: #b64013; color: white; font: inherit; font-weight: 650; cursor: pointer; }
+      button:focus-visible, textarea:focus-visible { outline: 3px solid #e68854; outline-offset: 2px; }
+      #status { min-height: 1.5rem; }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Conectar Mercado Libre con Tanuki</h1>
+      <p id="intro">Preparando la autorización…</p>
+      <div id="result" hidden>
+        <label for="redirect-url">URL de retorno</label>
+        <textarea id="redirect-url" readonly></textarea>
+        <button id="copy" type="button">Copiar URL</button>
+        <p id="status" role="status" aria-live="polite"></p>
+      </div>
+    </main>
+    <script>
+      const params = new URLSearchParams(location.search);
+      const intro = document.getElementById('intro');
+      const result = document.getElementById('result');
+      if (params.has('code') && params.has('state')) {
+        const callbackUrl = location.href;
+        history.replaceState(null, '', location.pathname);
+        document.getElementById('redirect-url').value = callbackUrl;
+        intro.textContent = 'Mercado Libre autorizó la conexión. Copiá esta URL y pegala en Tanuki, en Configuración → Mercado Libre.';
+        result.hidden = false;
+        document.getElementById('copy').addEventListener('click', async () => {
+          const field = document.getElementById('redirect-url');
+          try {
+            await navigator.clipboard.writeText(callbackUrl);
+            document.getElementById('status').textContent = 'URL copiada. Volvé a Tanuki para terminar.';
+          } catch {
+            field.select();
+            document.getElementById('status').textContent = 'Copiá el texto seleccionado y volvé a Tanuki.';
+          }
+        });
+      } else if (params.has('error')) {
+        history.replaceState(null, '', location.pathname);
+        intro.textContent = 'Mercado Libre no autorizó la conexión. Volvé a Tanuki e intentá nuevamente.';
+      } else {
+        intro.textContent = 'Esta página recibe la autorización de Mercado Libre. Iniciá la conexión desde Tanuki.';
+      }
+    </script>
+  </body>
+</html>
